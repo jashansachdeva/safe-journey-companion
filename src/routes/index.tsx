@@ -109,12 +109,14 @@ function App() {
             coords={coords}
             geoError={geoError}
             contacts={contacts}
+            lastCheckIn={lastCheckIn}
             onStart={(j) => {
               saveJourney(j);
               setToast("Journey started. Live location is on.");
             }}
             onSafe={() => {
               saveJourney(null);
+              recordCheckIn();
               setToast("Check-in confirmed. You are marked safe.");
             }}
             onExtend={(mins) => {
