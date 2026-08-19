@@ -13,6 +13,8 @@ import {
   Pencil,
   Siren,
   Lightbulb,
+  Share2,
+
 } from "lucide-react";
 import {
   SAFETY_TIPS,
