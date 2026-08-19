@@ -304,7 +304,13 @@ function LocationCard({ coords, geoError }: { coords: ReturnType<typeof useLiveL
     <div className="rounded-xl bg-muted px-3 py-3">
       <div className="flex items-center gap-2 text-sm font-semibold">
         <MapPin className="h-4 w-4 text-primary" /> Live location
-        {coords && <span className="ml-auto flex items-center gap-1 text-xs font-medium text-safe">● Live</span>}
+        <span
+          className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+            coords ? "bg-safe/15 text-safe" : "bg-warning/15 text-warning"
+          }`}
+        >
+          {coords ? "● Location Available" : "○ Location Unavailable"}
+        </span>
       </div>
       {coords ? (
         <>
@@ -323,6 +329,54 @@ function LocationCard({ coords, geoError }: { coords: ReturnType<typeof useLiveL
     </div>
   );
 }
+
+function ShareLocationButton({
+  coords,
+  label = "Share Location",
+}: {
+  coords: ReturnType<typeof useLiveLocation>["coords"];
+  label?: string;
+}) {
+  const [note, setNote] = useState<string | null>(null);
+
+  const share = async () => {
+    if (!coords) {
+      setNote("Location unavailable — enable GPS permission.");
+      return;
+    }
+    const text = `My live location: ${mapsLink(coords)} (±${coords.accuracy}m)`;
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title: "SafeTravel live location", text, url: mapsLink(coords) });
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      setNote("Location link copied to clipboard.");
+    } catch {
+      setNote("Could not share — link: " + mapsLink(coords));
+    }
+  };
+
+  useEffect(() => {
+    if (!note) return;
+    const t = setTimeout(() => setNote(null), 2600);
+    return () => clearTimeout(t);
+  }, [note]);
+
+  return (
+    <div>
+      <button
+        onClick={share}
+        disabled={!coords}
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary px-4 py-3 text-sm font-semibold text-primary disabled:opacity-40"
+      >
+        <Share2 className="h-4 w-4" /> {label}
+      </button>
+      {note && <p className="mt-1 break-all text-center text-xs text-muted-foreground">{note}</p>}
+    </div>
+  );
+}
+
 
 function JourneyTab({
   journey,
