@@ -24,6 +24,7 @@ import {
   smsHref,
   useContacts,
   useJourney,
+  useLastCheckIn,
   useLiveLocation,
   type Contact,
 } from "@/lib/safetravel";
