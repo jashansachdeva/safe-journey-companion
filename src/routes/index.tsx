@@ -13,6 +13,8 @@ import {
   Pencil,
   Siren,
   Lightbulb,
+  Share2,
+
 } from "lucide-react";
 import {
   SAFETY_TIPS,
@@ -304,7 +306,13 @@ function LocationCard({ coords, geoError }: { coords: ReturnType<typeof useLiveL
     <div className="rounded-xl bg-muted px-3 py-3">
       <div className="flex items-center gap-2 text-sm font-semibold">
         <MapPin className="h-4 w-4 text-primary" /> Live location
-        {coords && <span className="ml-auto flex items-center gap-1 text-xs font-medium text-safe">● Live</span>}
+        <span
+          className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+            coords ? "bg-safe/15 text-safe" : "bg-warning/15 text-warning"
+          }`}
+        >
+          {coords ? "● Location Available" : "○ Location Unavailable"}
+        </span>
       </div>
       {coords ? (
         <>
@@ -323,6 +331,54 @@ function LocationCard({ coords, geoError }: { coords: ReturnType<typeof useLiveL
     </div>
   );
 }
+
+function ShareLocationButton({
+  coords,
+  label = "Share Location",
+}: {
+  coords: ReturnType<typeof useLiveLocation>["coords"];
+  label?: string;
+}) {
+  const [note, setNote] = useState<string | null>(null);
+
+  const share = async () => {
+    if (!coords) {
+      setNote("Location unavailable — enable GPS permission.");
+      return;
+    }
+    const text = `My live location: ${mapsLink(coords)} (±${coords.accuracy}m)`;
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title: "SafeTravel live location", text, url: mapsLink(coords) });
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      setNote("Location link copied to clipboard.");
+    } catch {
+      setNote("Could not share — link: " + mapsLink(coords));
+    }
+  };
+
+  useEffect(() => {
+    if (!note) return;
+    const t = setTimeout(() => setNote(null), 2600);
+    return () => clearTimeout(t);
+  }, [note]);
+
+  return (
+    <div>
+      <button
+        onClick={share}
+        disabled={!coords}
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary px-4 py-3 text-sm font-semibold text-primary disabled:opacity-40"
+      >
+        <Share2 className="h-4 w-4" /> {label}
+      </button>
+      {note && <p className="mt-1 break-all text-center text-xs text-muted-foreground">{note}</p>}
+    </div>
+  );
+}
+
 
 function JourneyTab({
   journey,
@@ -402,12 +458,13 @@ function JourneyTab({
 
       <Card className="space-y-3">
         <LocationCard coords={coords} geoError={geoError} />
+        <ShareLocationButton coords={coords} />
         {contacts[0] && (
           <a
             href={smsHref(contacts[0].phone, msg)}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary px-4 py-3 text-sm font-semibold text-primary"
           >
-            <MessageSquare className="h-4 w-4" /> Text live location to {contacts[0].name}
+            <MessageSquare className="h-4 w-4" /> {missed ? "Notify" : "Text live location to"} {contacts[0].name}
           </a>
         )}
         <p className="rounded-xl bg-muted px-3 py-2 text-xs italic text-muted-foreground">"{msg}"</p>
@@ -419,20 +476,23 @@ function JourneyTab({
       >
         I'm Safe
       </button>
-      <div className="grid grid-cols-2 gap-3">
-        <button onClick={() => onExtend(15)} className="rounded-2xl border border-border bg-card py-3 text-sm font-semibold">
-          +15 min
-        </button>
-        <button onClick={() => onExtend(30)} className="rounded-2xl border border-border bg-card py-3 text-sm font-semibold">
-          +30 min
-        </button>
-      </div>
+      {!missed && (
+        <div className="grid grid-cols-2 gap-3">
+          <button onClick={() => onExtend(15)} className="rounded-2xl border border-border bg-card py-3 text-sm font-semibold">
+            +15 min
+          </button>
+          <button onClick={() => onExtend(30)} className="rounded-2xl border border-border bg-card py-3 text-sm font-semibold">
+            +30 min
+          </button>
+        </div>
+      )}
+
       <button
         onClick={onSos}
         className="flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-5 text-lg font-bold text-primary-foreground transition-transform active:scale-[0.98]"
         style={{ background: "var(--gradient-sos)" }}
       >
-        <Siren className="h-5 w-5" /> I Need Help
+        <Siren className="h-5 w-5" /> {missed ? "Emergency Help" : "I Need Help"}
       </button>
     </>
   );
@@ -484,9 +544,11 @@ function Emergency({
         <p className="mt-3 rounded-xl bg-black/20 px-3 py-2 text-left text-sm">{msg}</p>
       </div>
 
-      <Card>
+      <Card className="space-y-3">
         <LocationCard coords={coords} geoError={null} />
+        <ShareLocationButton coords={coords} />
       </Card>
+
 
       <Card className="space-y-2">
         <h3 className="font-semibold">Trusted contacts</h3>
