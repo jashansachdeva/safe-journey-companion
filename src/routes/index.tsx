@@ -464,6 +464,9 @@ function JourneyTab({
             style={{ width: `${missed ? 100 : pct}%` }}
           />
         </div>
+        <p className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <span className="h-2 w-2 rounded-full bg-safe" /> Last check-in: {formatLastCheckIn(lastCheckIn)}
+        </p>
         {missed && (
           <p className="mt-3 rounded-xl bg-warning/15 px-3 py-2 text-sm font-medium text-foreground">
             ⚠️ You didn't check in on time. Notify a trusted contact or open Emergency Help.
@@ -492,14 +495,12 @@ function JourneyTab({
         I'm Safe
       </button>
       {!missed && (
-        <div className="grid grid-cols-2 gap-3">
-          <button onClick={() => onExtend(15)} className="rounded-2xl border border-border bg-card py-3 text-sm font-semibold">
-            +15 min
-          </button>
-          <button onClick={() => onExtend(30)} className="rounded-2xl border border-border bg-card py-3 text-sm font-semibold">
-            +30 min
-          </button>
-        </div>
+        <button
+          onClick={() => onExtend(15)}
+          className="w-full rounded-2xl border border-border bg-card py-3 text-sm font-semibold"
+        >
+          Extend Journey +15 min
+        </button>
       )}
 
       <button
