@@ -492,7 +492,7 @@ function JourneyTab({
         className="flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-5 text-lg font-bold text-primary-foreground transition-transform active:scale-[0.98]"
         style={{ background: "var(--gradient-sos)" }}
       >
-        <Siren className="h-5 w-5" /> I Need Help
+        <Siren className="h-5 w-5" /> {missed ? "Emergency Help" : "I Need Help"}
       </button>
     </>
   );
