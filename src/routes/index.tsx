@@ -24,6 +24,7 @@ import {
   smsHref,
   useContacts,
   useJourney,
+  useLastCheckIn,
   useLiveLocation,
   type Contact,
 } from "@/lib/safetravel";
@@ -56,6 +57,7 @@ function App() {
   const [sos, setSos] = useState(false);
   const { contacts, save: saveContacts } = useContacts();
   const { journey, save: saveJourney } = useJourney();
+  const { lastCheckIn, recordCheckIn } = useLastCheckIn();
   const [now, setNow] = useState(() => Date.now());
   const [toast, setToast] = useState<string | null>(null);
 
@@ -107,12 +109,14 @@ function App() {
             coords={coords}
             geoError={geoError}
             contacts={contacts}
+            lastCheckIn={lastCheckIn}
             onStart={(j) => {
               saveJourney(j);
               setToast("Journey started. Live location is on.");
             }}
             onSafe={() => {
               saveJourney(null);
+              recordCheckIn();
               setToast("Check-in confirmed. You are marked safe.");
             }}
             onExtend={(mins) => {
@@ -379,6 +383,15 @@ function ShareLocationButton({
   );
 }
 
+function formatLastCheckIn(ts: number | null): string {
+  if (!ts) return "Never";
+  const diff = Date.now() - ts;
+  if (diff < 60000) return "Just now";
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+  return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+
 
 function JourneyTab({
   journey,
@@ -387,6 +400,7 @@ function JourneyTab({
   coords,
   geoError,
   contacts,
+  lastCheckIn,
   onStart,
   onSafe,
   onExtend,
@@ -398,6 +412,7 @@ function JourneyTab({
   coords: ReturnType<typeof useLiveLocation>["coords"];
   geoError: string | null;
   contacts: Contact[];
+  lastCheckIn: ReturnType<typeof useLastCheckIn>["lastCheckIn"];
   onStart: (j: NonNullable<ReturnType<typeof useJourney>["journey"]>) => void;
   onSafe: () => void;
   onExtend: (mins: number) => void;
@@ -449,6 +464,9 @@ function JourneyTab({
             style={{ width: `${missed ? 100 : pct}%` }}
           />
         </div>
+        <p className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <span className="h-2 w-2 rounded-full bg-safe" /> Last check-in: {formatLastCheckIn(lastCheckIn)}
+        </p>
         {missed && (
           <p className="mt-3 rounded-xl bg-warning/15 px-3 py-2 text-sm font-medium text-foreground">
             ⚠️ You didn't check in on time. Notify a trusted contact or open Emergency Help.
@@ -477,14 +495,12 @@ function JourneyTab({
         I'm Safe
       </button>
       {!missed && (
-        <div className="grid grid-cols-2 gap-3">
-          <button onClick={() => onExtend(15)} className="rounded-2xl border border-border bg-card py-3 text-sm font-semibold">
-            +15 min
-          </button>
-          <button onClick={() => onExtend(30)} className="rounded-2xl border border-border bg-card py-3 text-sm font-semibold">
-            +30 min
-          </button>
-        </div>
+        <button
+          onClick={() => onExtend(15)}
+          className="w-full rounded-2xl border border-border bg-card py-3 text-sm font-semibold"
+        >
+          Extend Journey +15 min
+        </button>
       )}
 
       <button
@@ -534,7 +550,35 @@ function Emergency({
   coords: ReturnType<typeof useLiveLocation>["coords"];
   onCancel: () => void;
 }) {
+  const [confirming, setConfirming] = useState(false);
   const msg = buildMessage("sos", coords);
+
+  if (confirming) {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-2xl p-5 text-center" style={{ background: "var(--gradient-hero)" }}>
+          <h2 className="text-xl font-bold text-primary-foreground">Are you sure you are safe?</h2>
+          <p className="mt-1 text-sm text-primary-foreground opacity-90">Only cancel if you are no longer in danger.</p>
+        </div>
+        <button
+          onClick={() => {
+            setConfirming(false);
+            onCancel();
+          }}
+          className="w-full rounded-2xl bg-safe px-6 py-5 text-lg font-bold text-safe-foreground transition-transform active:scale-[0.98]"
+        >
+          Yes, I'm Safe
+        </button>
+        <button
+          onClick={() => setConfirming(false)}
+          className="w-full rounded-2xl border border-border bg-card px-6 py-4 font-semibold"
+        >
+          Keep Emergency Mode
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="rounded-2xl p-5 text-center text-primary-foreground" style={{ background: "var(--gradient-sos)" }}>
@@ -548,7 +592,6 @@ function Emergency({
         <LocationCard coords={coords} geoError={null} />
         <ShareLocationButton coords={coords} />
       </Card>
-
 
       <Card className="space-y-2">
         <h3 className="font-semibold">Trusted contacts</h3>
@@ -574,7 +617,7 @@ function Emergency({
       >
         <Phone className="h-5 w-5" /> Call Emergency Services (112)
       </a>
-      <button onClick={onCancel} className="w-full rounded-2xl border border-border bg-card px-6 py-4 font-semibold">
+      <button onClick={() => setConfirming(true)} className="w-full rounded-2xl border border-border bg-card px-6 py-4 font-semibold">
         Cancel Emergency
       </button>
     </div>
