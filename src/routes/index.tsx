@@ -57,6 +57,7 @@ function App() {
   const [sos, setSos] = useState(false);
   const { contacts, save: saveContacts } = useContacts();
   const { journey, save: saveJourney } = useJourney();
+  const { lastCheckIn, recordCheckIn } = useLastCheckIn();
   const [now, setNow] = useState(() => Date.now());
   const [toast, setToast] = useState<string | null>(null);
 
