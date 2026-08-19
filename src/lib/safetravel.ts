@@ -55,6 +55,7 @@ export function useJourney() {
 }
 
 const LAST_CHECKIN_KEY = "safetravel.lastCheckIn";
+const SAFETY_PHRASE_KEY = "safetravel.safetyPhrase";
 
 export function useLastCheckIn() {
   const [lastCheckIn, setLastCheckIn] = useState<number | null>(null);
@@ -67,6 +68,18 @@ export function useLastCheckIn() {
     localStorage.setItem(LAST_CHECKIN_KEY, JSON.stringify(now));
   }, []);
   return { lastCheckIn, recordCheckIn };
+}
+
+export function useSafetyPhrase() {
+  const [phrase, setPhrase] = useState("Can you call me?");
+  useEffect(() => {
+    setPhrase(read<string>(SAFETY_PHRASE_KEY, "Can you call me?"));
+  }, []);
+  const save = useCallback((next: string) => {
+    setPhrase(next);
+    localStorage.setItem(SAFETY_PHRASE_KEY, JSON.stringify(next));
+  }, []);
+  return { phrase, setPhrase: save };
 }
 
 
