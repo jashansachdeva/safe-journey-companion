@@ -383,6 +383,15 @@ function ShareLocationButton({
   );
 }
 
+function formatLastCheckIn(ts: number | null): string {
+  if (!ts) return "Never";
+  const diff = Date.now() - ts;
+  if (diff < 60000) return "Just now";
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+  return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+
 
 function JourneyTab({
   journey,
