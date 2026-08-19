@@ -458,12 +458,13 @@ function JourneyTab({
 
       <Card className="space-y-3">
         <LocationCard coords={coords} geoError={geoError} />
+        <ShareLocationButton coords={coords} />
         {contacts[0] && (
           <a
             href={smsHref(contacts[0].phone, msg)}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary px-4 py-3 text-sm font-semibold text-primary"
           >
-            <MessageSquare className="h-4 w-4" /> Text live location to {contacts[0].name}
+            <MessageSquare className="h-4 w-4" /> {missed ? "Notify" : "Text live location to"} {contacts[0].name}
           </a>
         )}
         <p className="rounded-xl bg-muted px-3 py-2 text-xs italic text-muted-foreground">"{msg}"</p>
@@ -475,14 +476,17 @@ function JourneyTab({
       >
         I'm Safe
       </button>
-      <div className="grid grid-cols-2 gap-3">
-        <button onClick={() => onExtend(15)} className="rounded-2xl border border-border bg-card py-3 text-sm font-semibold">
-          +15 min
-        </button>
-        <button onClick={() => onExtend(30)} className="rounded-2xl border border-border bg-card py-3 text-sm font-semibold">
-          +30 min
-        </button>
-      </div>
+      {!missed && (
+        <div className="grid grid-cols-2 gap-3">
+          <button onClick={() => onExtend(15)} className="rounded-2xl border border-border bg-card py-3 text-sm font-semibold">
+            +15 min
+          </button>
+          <button onClick={() => onExtend(30)} className="rounded-2xl border border-border bg-card py-3 text-sm font-semibold">
+            +30 min
+          </button>
+        </div>
+      )}
+
       <button
         onClick={onSos}
         className="flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-5 text-lg font-bold text-primary-foreground transition-transform active:scale-[0.98]"
