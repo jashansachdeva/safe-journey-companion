@@ -54,6 +54,22 @@ export function useJourney() {
   return { journey, save };
 }
 
+const LAST_CHECKIN_KEY = "safetravel.lastCheckIn";
+
+export function useLastCheckIn() {
+  const [lastCheckIn, setLastCheckIn] = useState<number | null>(null);
+  useEffect(() => {
+    setLastCheckIn(read<number | null>(LAST_CHECKIN_KEY, null));
+  }, []);
+  const recordCheckIn = useCallback(() => {
+    const now = Date.now();
+    setLastCheckIn(now);
+    localStorage.setItem(LAST_CHECKIN_KEY, JSON.stringify(now));
+  }, []);
+  return { lastCheckIn, recordCheckIn };
+}
+
+
 export type Coords = { lat: number; lng: number; accuracy: number; at: number };
 
 export function useLiveLocation(active: boolean) {
