@@ -550,7 +550,35 @@ function Emergency({
   coords: ReturnType<typeof useLiveLocation>["coords"];
   onCancel: () => void;
 }) {
+  const [confirming, setConfirming] = useState(false);
   const msg = buildMessage("sos", coords);
+
+  if (confirming) {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-2xl p-5 text-center" style={{ background: "var(--gradient-hero)" }}>
+          <h2 className="text-xl font-bold text-primary-foreground">Are you sure you are safe?</h2>
+          <p className="mt-1 text-sm text-primary-foreground opacity-90">Only cancel if you are no longer in danger.</p>
+        </div>
+        <button
+          onClick={() => {
+            setConfirming(false);
+            onCancel();
+          }}
+          className="w-full rounded-2xl bg-safe px-6 py-5 text-lg font-bold text-safe-foreground transition-transform active:scale-[0.98]"
+        >
+          Yes, I'm Safe
+        </button>
+        <button
+          onClick={() => setConfirming(false)}
+          className="w-full rounded-2xl border border-border bg-card px-6 py-4 font-semibold"
+        >
+          Keep Emergency Mode
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="rounded-2xl p-5 text-center text-primary-foreground" style={{ background: "var(--gradient-sos)" }}>
@@ -564,7 +592,6 @@ function Emergency({
         <LocationCard coords={coords} geoError={null} />
         <ShareLocationButton coords={coords} />
       </Card>
-
 
       <Card className="space-y-2">
         <h3 className="font-semibold">Trusted contacts</h3>
@@ -590,7 +617,7 @@ function Emergency({
       >
         <Phone className="h-5 w-5" /> Call Emergency Services (112)
       </a>
-      <button onClick={onCancel} className="w-full rounded-2xl border border-border bg-card px-6 py-4 font-semibold">
+      <button onClick={() => setConfirming(true)} className="w-full rounded-2xl border border-border bg-card px-6 py-4 font-semibold">
         Cancel Emergency
       </button>
     </div>
