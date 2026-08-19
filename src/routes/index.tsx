@@ -544,9 +544,11 @@ function Emergency({
         <p className="mt-3 rounded-xl bg-black/20 px-3 py-2 text-left text-sm">{msg}</p>
       </div>
 
-      <Card>
+      <Card className="space-y-3">
         <LocationCard coords={coords} geoError={null} />
+        <ShareLocationButton coords={coords} />
       </Card>
+
 
       <Card className="space-y-2">
         <h3 className="font-semibold">Trusted contacts</h3>
