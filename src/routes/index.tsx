@@ -391,6 +391,7 @@ function JourneyTab({
   coords,
   geoError,
   contacts,
+  lastCheckIn,
   onStart,
   onSafe,
   onExtend,
@@ -402,6 +403,7 @@ function JourneyTab({
   coords: ReturnType<typeof useLiveLocation>["coords"];
   geoError: string | null;
   contacts: Contact[];
+  lastCheckIn: ReturnType<typeof useLastCheckIn>["lastCheckIn"];
   onStart: (j: NonNullable<ReturnType<typeof useJourney>["journey"]>) => void;
   onSafe: () => void;
   onExtend: (mins: number) => void;
